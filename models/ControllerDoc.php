@@ -9,13 +9,11 @@ use phpDocumentor\Reflection\DocBlock;
  *
  * @property string $shortDescription
  * @property string $longDescription
+ * @property \pahanini\restdoc\models\ActionDoc[] $actions
  */
 class ControllerDoc extends Doc
 {
-    /**
-     * @var string[] list of actions
-     */
-    public $actions;
+    private $_actions = [];
 
     /**
      * @var \pahanini\restdoc\models\ModelDoc
@@ -108,5 +106,36 @@ class ControllerDoc extends Doc
         if (!$this->_longDescription && $value) {
             $this->_longDescription = $value;
         }
+    }
+    
+    /**
+     * @param string $name
+     * @param string $controller
+     * @param array $verb
+     * @param string $route
+     */
+    public function addAction($name, $shortDescription = '', $longDescription = '', $controller = '', $verb = [], $route = '')
+    {
+        if (!isset($this->_actions[$name])) {
+            $action = new ActionDoc();
+            $action->setName($name);
+            $action->setParent($action);
+            $this->_actions[$name] = $action;
+        }
+        $this->_actions[$name]->setController($controller);
+        $this->_actions[$name]->setVerb($verb);
+        $this->_actions[$name]->setRoute($route);
+        $this->_actions[$name]->setShortDescription($shortDescription);
+        $this->_actions[$name]->setLongDescription($longDescription);
+        
+        return $this->_actions[$name];
+    }
+    
+    /**
+     * 
+     */
+    public function getActions()
+    {
+        return $this->_actions;
     }
 }
