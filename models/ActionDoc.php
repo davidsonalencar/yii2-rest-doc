@@ -29,7 +29,7 @@ class ActionDoc extends Doc
      * @param string $type
      * @param string $description
      */
-    public function addParameter($name, $type = '', $description = '')
+    public function addParameter($name, $type = '', $description = '', $required = true, $default = '')
     {
         if (!isset($this->_parameters[$name])) {
             $field = new FieldDoc();
@@ -39,6 +39,8 @@ class ActionDoc extends Doc
         }
         $this->_parameters[$name]->setDescription($description);
         $this->_parameters[$name]->setType($type);
+        $this->_parameters[$name]->setRequired($required);
+        $this->_parameters[$name]->setDefault($default);
     }
 
     /**

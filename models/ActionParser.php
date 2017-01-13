@@ -75,11 +75,24 @@ class ActionParser extends ObjectParser
             $doc->setRoute($rule->route);
             $doc->setVerb($rule->verb);
         }
-                
+        //print_r($docBlock->getTagsByName('param'));die();
+        $params = $this->reflection->getParameters();
         foreach($docBlock->getTagsByName('param') as $tag) {
-            $doc->addParameter($tag->getVariableName(), $tag->getType(), $tag->getDescription());            
+            
+            $paramName = substr($tag->getVariableName(), 1);
+            
+            $param = reset(array_filter($params, function($param) use ($paramName) {
+                return $param->getName() == $paramName;
+            }));
+            
+            $defaultValue = null;
+            if ($param->isOptional()) {
+                $defaultValue = $param->getDefaultValue();
+            }
+            
+            $doc->addParameter($paramName, $tag->getType(), $tag->getDescription(), !$param->isOptional(), $defaultValue);
         }
-
+        
         if (DocBlockHelper::isInherit($docBlock)) {
             $parentParser = $this->getParentParser();
             $parentParser->parseActionInline($doc);
@@ -117,9 +130,23 @@ class ActionParser extends ObjectParser
             $doc->setVerb($rule->verb);
         }
         
+        $params = $this->reflection->getMethod('run')->getParameters();
         foreach($docBlock->getTagsByName('param') as $tag) {
-            $doc->addParameter($tag->getVariableName(), $tag->getType(), $tag->getDescription());            
+            
+            $paramName = substr($tag->getVariableName(), 1);
+            
+            $param = reset(array_filter($params, function($param) use ($paramName) {
+                return $param->getName() == $paramName;
+            }));
+            
+            $defaultValue = null;
+            if ($param->isOptional()) {
+                $defaultValue = $param->getDefaultValue();
+            }
+            
+            $doc->addParameter($paramName, $tag->getType(), $tag->getDescription(), !$param->isOptional(), $defaultValue);
         }
+        
         
         if (DocBlockHelper::isInherit($docBlock)) {
             $parentParser = $this->getParentParser();

@@ -10,6 +10,8 @@ class FieldDoc extends Doc
     private $_description;
     private $_type;
     private $_name;
+    private $_default;
+    private $_required;
     private $_scenarios = [];
 
     public function getDescription()
@@ -57,4 +59,23 @@ class FieldDoc extends Doc
     {
         $this->_scenarios = array_merge($this->_scenarios, $value);
     }
+    
+    function getDefault() {
+        return $this->_default;
+    }
+
+    function setDefault($value) {
+        if ($value) {
+            $this->_default = $value;
+        }
+    }
+    
+    function getRequired() {
+        return $this->_required;
+    }
+
+    function setRequired($required) {
+        $this->_required = $required;
+    }
+
 }

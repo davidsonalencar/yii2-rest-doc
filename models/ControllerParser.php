@@ -120,6 +120,9 @@ class ControllerParser extends ObjectParser
         $doc->model = new ModelDoc();
         $modelParser->parse($doc->model);
         
+        //$doc->model->prepare();
+        //print_r($doc->model); die();
+        
         return true;
     }
 
