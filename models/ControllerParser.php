@@ -52,31 +52,14 @@ class ControllerParser extends ObjectParser
         
         $object = $this->getObject();
         
-        $router = $module.'/'.$doc->path;
+        $controllerRoute = $module.'/'.$doc->path;
         
-        $actionsAvailable = [];
-        
-        foreach (Yii::$app->getUrlManager()->rules as $urlRule) {
-            $ref = new \ReflectionObject($urlRule);
-            $p = $ref->getProperty('rules');
-            $p->setAccessible(true); // <--- you set the property to public before you read the value
-            
-            $controllerRules = $p->getValue($urlRule);
-            
-            if (isset($controllerRules[$router])) {
-                $actionsAvailable = array_merge($actionsAvailable, $controllerRules[$router]);
-            }
-        }
-
-        foreach ($actionsAvailable as $key => &$action) {
-            if (!isset($action->verb[0]) || $action->verb[0] == 'OPTIONS') {
-                unset($actionsAvailable[$key]);
-            }
-        }
-        
+        $routeRulesAvailable = $this->getRouteRulesAvailable($controllerRoute);
+                
         /**
          * 
          */
+        
         $actionInline = $this->reflection->getMethods();
         
         // Todas as ações inline
@@ -87,29 +70,41 @@ class ControllerParser extends ObjectParser
         }
         
         foreach ($actionInline as $method) {
-            $this->parseActionInline($doc, $method, $actionsAvailable);
+            //$this->parseActionInline($doc, $method, $actionsAvailable);
+            
+            // Parse model
+            $actionParser = Yii::createObject(
+                [
+                    'class' => '\pahanini\restdoc\models\ActionParser',
+                    'reflection' => $method,
+                ]
+            );
+            $actionDoc = new ActionDoc();
+            $actionParser->parseActionInline($actionDoc, $routeRulesAvailable);
+            $doc->addAction($actionDoc);
         }
-        
+                
         foreach ($object->actions() as $action) {
+            
+            if ($action['class'] == 'yii\rest\OptionsAction') {
+                continue;
+            }
+            
             $action = new \ReflectionClass($action['class']);
-            $this->parseAction($doc, $action, $actionsAvailable);
+            
+            // Parse model
+            $actionParser = Yii::createObject(
+                [
+                    'class' => '\pahanini\restdoc\models\ActionParser',
+                    'reflection' => $action,
+                ]
+            );
+            $actionDoc = new ActionDoc();
+            $actionParser->parseActionClass($actionDoc, $routeRulesAvailable);
+            $doc->addAction($actionDoc);
+            
         }
 
-        print_r($doc->actions);die();
-//        
-//        print_r($object->actions()); die();
-//        
-//        
-//        foreach ($doc->actions as $action) {
-//            print_r(implode($action->verb, '|')."\n");
-//            print_r($action->name."\n");
-//            print_r($action->route."\n");
-//            print_r("----\n");
-//        }
-//               
-//        
-//        
-//        die();
         //v1/user
         //print_r($object->module->className());die();
         
@@ -124,7 +119,7 @@ class ControllerParser extends ObjectParser
         );
         $doc->model = new ModelDoc();
         $modelParser->parse($doc->model);
-        print_r($doc); die();
+        
         return true;
     }
 
@@ -149,75 +144,28 @@ class ControllerParser extends ObjectParser
         }
     }
     
-    /**
-     * @param $doc
-     * @return bool
-     */
-    public function parseActionInline(ControllerDoc $doc, $methodReflection, $actionsAvailable)
-    {
-        if (!$docBlock = new DocBlock($methodReflection)) {
-            return false;
+    public function getRouteRulesAvailable($controllerRoute) {
+        $actionsAvailable = [];
+        
+        foreach (Yii::$app->getUrlManager()->rules as $urlRule) {
+            $ref = new \ReflectionObject($urlRule);
+            $p = $ref->getProperty('rules');
+            $p->setAccessible(true); // <--- you set the property to public before you read the value
+            
+            $controllerRules = $p->getValue($urlRule);
+            
+            if (isset($controllerRules[$controllerRoute])) {
+                $actionsAvailable = array_merge($actionsAvailable, $controllerRules[$controllerRoute]);
+            }
         }
-        
-        $actionName = Inflector::camel2id(preg_replace('/^action/', '', $methodReflection->getName() ) );
-        
-        $rule = reset(array_filter($actionsAvailable, function($action) use ($actionName) {
-            if (preg_match('/\/'.$actionName.'$/', $action->route)) {
-                return true;
-            }            
-        }));
-        
-        $action = $doc->addAction(
-                $actionName,
-                $docBlock->getShortDescription(),
-                $docBlock->getLongDescription()->getContents(),
-                $rule->route,
-                $rule->verb,
-                $rule->name);
-        
-        foreach($docBlock->getTagsByName('param') as $tag) {
-            $action->addParameter($tag->getVariableName(), $tag->getType(), $tag->getDescription());            
-        }
-                
-        //$doc->populateTags($docBlock);
 
-//        if (DocBlockHelper::isInherit($docBlock)) {
-//            $parentParser = $this->getParentParser();
-//            $parentParser->parseAction($doc, $parentParser);
-//        }
-    }
-    
-    public function parseAction(ControllerDoc $doc, $actionReflection, $actionsAvailable)
-    {
-        if (!$docBlock = new DocBlock($actionReflection)) {
-            return false;
+        foreach ($actionsAvailable as $key => &$action) {
+            if (!isset($action->verb[0]) || $action->verb[0] == 'OPTIONS') {
+                unset($actionsAvailable[$key]);
+            }
         }
         
-//        $actionName = Inflector::camel2id(preg_replace('/^action/', '', $actionReflection->getName() ) );
-//        
-//        $rule = reset(array_filter($actionsAvailable, function($action) use ($actionName) {
-//            if (preg_match('/\/'.$actionName.'$/', $action->route)) {
-//                return true;
-//            }            
-//        }));
-//        
-//        $action = $doc->addAction(
-//                $actionName,
-//                $docBlock->getShortDescription(),
-//                $docBlock->getLongDescription()->getContents(),
-//                $rule->route,
-//                $rule->verb,
-//                $rule->name);
-//        
-//        foreach($docBlock->getTagsByName('param') as $tag) {
-//            $action->addParameter($tag->getVariableName(), $tag->getType(), $tag->getDescription());            
-//        }
-                
-        //$doc->populateTags($docBlock);
+        return $actionsAvailable;
 
-//        if (DocBlockHelper::isInherit($docBlock)) {
-//            $parentParser = $this->getParentParser();
-//            $parentParser->parseAction($doc, $parentParser);
-//        }
     }
 }

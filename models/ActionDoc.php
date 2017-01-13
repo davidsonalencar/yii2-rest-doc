@@ -16,8 +16,8 @@ class ActionDoc extends Doc
     
     private $_route = null;
 
-    private $_controller = null;
-
+    private $_rule = null;
+    
     private $_parameters = [];
     
     private $_longDescription;
@@ -64,21 +64,13 @@ class ActionDoc extends Doc
     function getRoute() {
         return $this->_route;
     }
-
-    function getController() {
-        return $this->_controller;
-    }
-
+    
     function setVerb($verb) {
         $this->_verb = $verb;
     }
 
     function setRoute($route) {
         $this->_route = $route;
-    }
-
-    function setController($controller) {
-        $this->_controller = $controller;
     }
     
     function getName() {
@@ -104,20 +96,13 @@ class ActionDoc extends Doc
     function setShortDescription($shortDescription) {
         $this->_shortDescription = $shortDescription;
     }
-
-    /**
-     * 
-     */
-    public function prepare()
-    {
-        foreach($this->getTagsByName('param') as $tag) {
-            $name = trim($tag->getVariableName(), '$');
-            $this->addParameter($name, $tag->getType(), $tag->getDescription());
-        }
-
-        foreach ($this->_parameters as $parameter) {
-            $parameter->prepare();
-        }
+    
+    function getRule() {
+        return $this->_rule;
     }
 
+    function setRule($rule) {
+        $this->_rule = $rule;
+    }
+   
 }

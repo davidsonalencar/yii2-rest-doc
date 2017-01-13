@@ -13,6 +13,9 @@ use phpDocumentor\Reflection\DocBlock;
  */
 class ControllerDoc extends Doc
 {
+    /**
+     * @var \pahanini\restdoc\models\ActionDoc[]
+     */
     private $_actions = [];
 
     /**
@@ -109,27 +112,29 @@ class ControllerDoc extends Doc
     }
     
     /**
-     * @param string $name
-     * @param string $controller
-     * @param array $verb
-     * @param string $route
+     * @param \pahanini\restdoc\models\ActionDoc $doc
      */
-    public function addAction($name, $shortDescription = '', $longDescription = '', $controller = '', $verb = [], $route = '')
+    public function addAction($doc)
     {
-        if (!isset($this->_actions[$name])) {
-            $action = new ActionDoc();
-            $action->setName($name);
-            $action->setParent($action);
-            $this->_actions[$name] = $action;
-        }
-        $this->_actions[$name]->setController($controller);
-        $this->_actions[$name]->setVerb($verb);
-        $this->_actions[$name]->setRoute($route);
-        $this->_actions[$name]->setShortDescription($shortDescription);
-        $this->_actions[$name]->setLongDescription($longDescription);
-        
-        return $this->_actions[$name];
-    }
+        $this->_actions[] = $doc;
+    }    
+    
+//    public function addAction($name, $shortDescription = '', $longDescription = '', $controller = '', $verb = [], $route = '')
+//    {
+//        if (!isset($this->_actions[$name])) {
+//            $action = new ActionDoc();
+//            $action->setName($name);
+//            $action->setParent($action);
+//            $this->_actions[$name] = $action;
+//        }
+//        $this->_actions[$name]->setController($controller);
+//        $this->_actions[$name]->setVerb($verb);
+//        $this->_actions[$name]->setRoute($route);
+//        $this->_actions[$name]->setShortDescription($shortDescription);
+//        $this->_actions[$name]->setLongDescription($longDescription);
+//        
+//        return $this->_actions[$name];
+//    }
     
     /**
      * 
