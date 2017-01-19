@@ -9,6 +9,7 @@ use phpDocumentor\Reflection\DocBlock;
  *
  * @property string $shortDescription
  * @property string $longDescription
+ * @property string $category
  * @property \pahanini\restdoc\models\ActionDoc[] $actions
  */
 class ControllerDoc extends Doc
@@ -47,6 +48,11 @@ class ControllerDoc extends Doc
      * @var string Short description of controller
      */
     private $_shortDescription;
+    
+    /**
+     * @var string Category
+     */
+    private $_category;
 
     /**
      * @return string
@@ -143,4 +149,13 @@ class ControllerDoc extends Doc
     {
         return $this->_actions;
     }
+    
+    function getCategory() {
+        return $this->_category;
+    }
+
+    function setCategory($_category) {
+        $this->_category = $_category;
+    }
+    
 }

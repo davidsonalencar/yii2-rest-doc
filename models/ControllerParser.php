@@ -138,6 +138,12 @@ class ControllerParser extends ObjectParser
 
         $doc->longDescription = $docBlock->getLongDescription()->getContents();
         $doc->shortDescription = $docBlock->getShortDescription();
+        
+        $category = $docBlock->getTagsByName('category');
+        
+        if (!empty($category)) {
+            $doc->category = $category[0]->getDescription();
+        }
 
         $doc->populateTags($docBlock);
 
