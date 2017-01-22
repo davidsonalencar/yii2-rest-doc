@@ -26,13 +26,14 @@ class Context extends \yii\base\Component
      * @param null $objectConfig
      * @throws \yii\base\InvalidConfigException
      */
-    private function addControllerDoc($className, $objectConfig = null)
+    private function addControllerDoc($className, $objectConfig = null, $objectArgs = null)
     {
         $parser = Yii::createObject(
             [
                 'class' => ControllerParser::className(),
                 'reflection' => new \ReflectionClass($className),
                 'objectConfig' => $objectConfig,
+                'objectArgs' => $objectArgs
             ]
         );
         $doc = new ControllerDoc();
@@ -53,9 +54,10 @@ class Context extends \yii\base\Component
     public function addModule($module)
     {
         /* @var $module Module */
-        $module = Yii::createObject($module, ['_id', null]);
+        $id = preg_replace('/^.*?([^\\\]+)\\\[^\\\]+$/', '\1', $module);
+        $module = Yii::createObject($module, [$id, null]);
         $module->setInstance($module);
-        $this->addDirs($module->getControllerPath());
+        $this->addDirs($module->getControllerPath(), $module);
 
         foreach ($module->controllerMap as $value) {
             if (is_array($value)) {
@@ -87,8 +89,9 @@ class Context extends \yii\base\Component
      * Adds one or more directories with controllers to context.
      *
      * @param string[] $dirs
+     * @param object $module
      */
-    public function addDirs($dirs)
+    public function addDirs($dirs, $module = null)
     {
         $dirs = is_array($dirs) ? $dirs : [$dirs];
         foreach ($dirs as $dir) {
@@ -96,7 +99,7 @@ class Context extends \yii\base\Component
                 'only' => ['*Controller.php']
             ]);
             foreach ($files as $file) {
-                $this->addFile($file);
+                $this->addFile($file, $module);
             }
         }
     }
@@ -105,8 +108,9 @@ class Context extends \yii\base\Component
      * Adds file to context.
      *
      * @param string $fileName
+     * @param object $module
      */
-    public function addFile($fileName)
+    public function addFile($fileName, $module = null)
     {
         $reflector = new FileReflector($fileName);
         $reflector->process();
@@ -116,8 +120,8 @@ class Context extends \yii\base\Component
         if (count($classes) !== 1) {
             throw new InvalidParamException("File $fileName includes more then one class");
         }
-
-        $this->addControllerDoc($classes[0]->getName());
+                
+        $this->addControllerDoc($classes[0]->getName(), null, ['_id', $module]);
     }
 
     /**

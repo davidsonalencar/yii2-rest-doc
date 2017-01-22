@@ -18,7 +18,9 @@ class ModelParser extends ObjectParser
     public function parse(Doc $doc)
     {
         $object = $this->getObject();
-
+        
+        $this->parseClass($doc);
+        
         foreach ($object->scenarios() as $key => $fields) {
             $doc->addScenario($key, $fields);
         }
@@ -27,11 +29,37 @@ class ModelParser extends ObjectParser
             $doc->addExtraField(is_numeric($key) ? $value : $key);
         }
 
-        foreach ($object->fields() as $key => $value) {
-            $doc->addField(is_numeric($key) ? $value : $key);
+//        foreach ($object->fields() as $key => $value) {
+//            $doc->addField(is_numeric($key) ? $value : $key);
+//        }
+        
+        foreach ($object->safeAttributes() as $key => $value) {
+            $name = is_numeric($key) ? $value : $key;
+            $field = $doc->addField($name);
+            
+            $property = $doc->getProperty($name);
+            if ($property) {
+                $field->setType( $property->getType() );
+                $field->setDescription( $property->getDescription() );
+            }
+            $validators = $object->getActiveValidators($value);
+            foreach ($validators as $validator) {
+                if ($validator->className() == 'yii\validators\RequiredValidator') {
+                    $field->setRequired(true);
+                }
+            }
+            //$validators
+//            $field->setRequired();
+//            print_r($validators);
+//            die();
+            //$doc->addField(is_numeric($key) ? $value : $key);
         }
+        
+        
+        
+        //print_r($object->safeAttributes());
+        //getActiveValidators
 
-        $this->parseClass($doc);
         $this->parseFields($doc, 'fields');
         $this->parseFields($doc, 'extraFields');
 

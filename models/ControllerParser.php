@@ -47,15 +47,28 @@ class ControllerParser extends ObjectParser
             return false;
         }
 
-        $module = preg_replace('/^.+\\\([\w]+)\\\controllers/', '\1', $this->reflection->getNamespaceName());
-        $doc->path = Inflector::camel2id(substr($this->reflection->getShortName(), 0, -strlen('Controller')));
-        
         $object = $this->getObject();
         
-        $controllerRoute = $module.'/'.$doc->path;
+        $doc->module = $object->module->id;
         
-        $routeRulesAvailable = $this->getRouteRulesAvailable($controllerRoute);
-                
+        
+        $path = preg_replace('/^.+\\\\'.$doc->module.'\\\controllers\\\/', '', $this->reflection->getName());
+        $path = substr($path, 0, -strlen('Controller'));
+        $path = explode('\\', $path);
+        $path = array_map(function($id){
+            return Inflector::camel2id($id);
+        }, $path);
+        $path = implode('/', $path);
+        
+        
+        $doc->path = $path;
+        $doc->path = $doc->module.'/'.$doc->path;
+        
+        
+        
+        //die($doc->path);
+        $routeRulesAvailable = $this->getRouteRulesAvailable($doc->path);
+        //print_r($doc->path); die(); 
         /**
          * 
          */
@@ -162,7 +175,6 @@ class ControllerParser extends ObjectParser
             $p->setAccessible(true); // <--- you set the property to public before you read the value
             
             $controllerRules = $p->getValue($urlRule);
-            
             if (isset($controllerRules[$controllerRoute])) {
                 $actionsAvailable = array_merge($actionsAvailable, $controllerRules[$controllerRoute]);
             }

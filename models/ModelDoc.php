@@ -42,6 +42,8 @@ class ModelDoc extends Doc
         $fields[$name]->setScenarios($scenarios);
         $fields[$name]->setDescription($description);
         $fields[$name]->setType($type);
+        
+        return $fields[$name];
     }
 
     /**
@@ -52,7 +54,7 @@ class ModelDoc extends Doc
      */
     public function addField($name, $type = '', $description = '', $scenarios = [])
     {
-        $this->_addField($this->_fields, $name, $type, $description, $scenarios);
+        return $this->_addField($this->_fields, $name, $type, $description, $scenarios);
     }
 
     /**
@@ -62,7 +64,7 @@ class ModelDoc extends Doc
      */
     public function addExtraField($name, $type = '', $description = '')
     {
-        $this->_addField($this->_extraFields, $name, $type, $description);
+        return $this->_addField($this->_extraFields, $name, $type, $description);
     }
 
     /**
@@ -70,7 +72,7 @@ class ModelDoc extends Doc
      */
     public function addSortField($name)
     {
-        $this->_addField($this->_sortFields, $name);
+        return $this->_addField($this->_sortFields, $name);
     }
 
     /**
@@ -122,7 +124,7 @@ class ModelDoc extends Doc
      * @param $name
      * @return mixed
      */
-    protected function getProperty($name)
+    public function getProperty($name)
     {
         return isset($this->_properties[$name]) ? $this->_properties[$name] : null;
     }
@@ -278,4 +280,13 @@ class ModelDoc extends Doc
     {
         $this->_parent = $value;
     }
+    
+    function getProperties() {
+        return $this->_properties;
+    }
+
+    function setProperties($properties) {
+        $this->_properties = $properties;
+    }
+
 }
